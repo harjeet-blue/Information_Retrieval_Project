@@ -9,7 +9,7 @@ else:
 mycursor = conn.cursor()
 
 mycursor.execute("select * from ir_policy_db.Apps_table join ir_policy_db.app_permission join ir_policy_db.Permission where ir_policy_db.Apps_table.App_Id = ir_policy_db.app_permission.appID and ir_policy_db.app_permission.permissionID = ir_policy_db.Permission.PermissionID;")
-
 result = mycursor.fetchall()
 print(result[0])
+
 
