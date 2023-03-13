@@ -9,7 +9,7 @@ for row in range(0, len(reader)):
 
         for ch in currpp:
              temp = ""
-             if(ch == '\'' or ch == '\"'):
+             if(ch == '\"' or ch == '\'' ):
                   temp = '\\'+ch
              else:
                   temp = ch
@@ -18,7 +18,7 @@ for row in range(0, len(reader)):
 
         for ch in currsum:
              temp = ""
-             if(ch == '\'' or ch == '\"'):
+             if(ch == '\"' or ch == '\''):
                   temp = '\\'+ch
              else:
                   temp = ch
