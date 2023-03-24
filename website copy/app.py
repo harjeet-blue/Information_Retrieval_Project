@@ -3,6 +3,13 @@ from flask import Flask, render_template, request, redirect,url_for
 from flask_mysqldb import MySQL
 import mysql.connector
 
+import torch 
+from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
+
+
+model = T5ForConditionalGeneration.from_pretrained('t5-small')
+tokenizer = T5Tokenizer.from_pretrained('t5-small')
+device = torch.device('cpu')
 conn = mysql.connector.connect(host='localhost', password='7061', user='root', database = 'ir_policy_db')
 # import yaml
 
@@ -20,8 +27,25 @@ app.config['MYSQL_DB']='ir_policy_db'
 
 mysql=MySQL(app)
 
+def summarize_text(text):
+    
+  preprocess_text = text.strip().replace("\n","")
+  t5_prepared_Text = "summarize: "+preprocess_text
 
-@app.route("/index", methods=['GET', 'POST'])
+  tokenized_text = tokenizer.encode(t5_prepared_Text, return_tensors="pt").to(device)
+
+  # summmarize 
+  summary_ids = model.generate(tokenized_text,
+                                      num_beams=4,
+                                      no_repeat_ngram_size=2,
+                                      min_length=50,
+                                      max_length=300,
+                                      early_stopping=True)
+
+  output = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+
+  return output
+@app.route("/", methods=['GET', 'POST'])
 def template():
     if request.method=='POST':
         # print("heu")
@@ -42,6 +66,9 @@ def template():
         # return redirect('/homepage')
         # Homepage(str3)
     return render_template('index.html')
+
+def privacyScore(summary):
+    return 0
 def summary(policy):
 
     return "this is very good policy"
@@ -50,13 +77,19 @@ def process_input():
     input_text = request.form['input_text']
     # Process the input here
     print(input_text)
-    summary1=summary(input_text)
+    summary1=summarize_text(input_text)
+    
+    # result.append(privacyscore)
+
     return redirect(url_for('newpolicy', summary1=summary1))
 @app.route('/newpolicy')
 def newpolicy():
     summary1 = request.args.get('summary1')
-    print(summary1)
-    return render_template('newpolicy.html', string_var=summary1)
+    privacyscore=privacyScore(summary1)
+    result=[]
+    result.append((summary1,privacyscore))
+    # print(type(summary1))
+    return render_template('newpolicy.html', result=result)
 
 
 @app.route('/input')

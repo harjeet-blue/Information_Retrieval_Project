@@ -1,24 +1,60 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
+
 <html>
 <head>
-	<title>Example Page</title>
-	<style>
-		body {
-			background-color: #F8F8F8;
-			font-family: Arial, sans-serif;
-		}
-		h1 {
-			font-size: 36px;
-			color: #1E88E5;
-			margin-top: 50px;
-			margin-bottom: 50px;
-			text-align: center;
-		}
-	</style>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
-<body>
-	<div class="container">
-		<h1>{{ string_var }}</h1>
-	</div>
-</body>
-</html>
+{% block content %}
+  <table id="data" class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Summary </th>
+        <th scope="col">Privacy Score</th>
+        
+      </tr>
+    </thead>
+    <tbody>
+        {% for user in result %}
+        <tr>
+            <td>{{user[0]}} </td>
+            <td>{{user[1]}} </td>
+            
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable({
+        columns: [
+          {searchable: false},
+          {searchable: false},
+          {orderable: false, searchable: false}],
+      });
+    });
+  </script>
+{% endblock %}
