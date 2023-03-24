@@ -1,13 +1,22 @@
 import mysql.connector
 
-conn = mysql.connector.connect(host='localhost', password='password', user='root', database = 'ir_policy_db')
+conn = mysql.connector.connect(host='localhost', password='7061', user='root', database = 'ir_policy_db')
 
 if(conn.is_connected()):
     print('Connection Successful')
 else:
     print('Connection Failed')
 
+
+
+
 mycursor = conn.cursor()
+str2="select ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Summary, ir_policy_db.Apps_table.Score, ir_policy_db.Apps_table.Rating from ir_policy_db.Apps_table where ir_policy_db.Apps_table.App_Name = "
+str3=str2+"\'"+"whatsapp"+"\';"
+mycursor.execute(str3)
+resultVAlue=mycursor.fetchall()
+
+print(type(resultVAlue))
 
 mycursor.execute("select * from ir_policy_db.Apps_table join ir_policy_db.app_permission join ir_policy_db.Permission where ir_policy_db.Apps_table.App_Id = ir_policy_db.app_permission.appID and ir_policy_db.app_permission.permissionID = ir_policy_db.Permission.PermissionID;")
 
