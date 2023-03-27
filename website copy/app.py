@@ -2,11 +2,12 @@ from urllib import request
 from flask import Flask, render_template, request, redirect,url_for
 from flask_mysqldb import MySQL
 import mysql.connector
-
+import indexing as idxx
 import torch 
 from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
-
-
+# import indexing as idxx
+input_text=""
+score=0
 model = T5ForConditionalGeneration.from_pretrained('t5-small')
 tokenizer = T5Tokenizer.from_pretrained('t5-small')
 device = torch.device('cpu')
@@ -74,11 +75,14 @@ def summary(policy):
     return "this is very good policy"
 @app.route('/process_input', methods=['POST'])
 def process_input():
-    input_text = request.form['input_text']
-    # Process the input here
-    print(input_text)
-    summary1=summarize_text(input_text)
     
+    input_text = request.form['input_text']
+    global score
+    score=idxx.update(input_text)*100
+
+    # Process the input here
+
+    summary1=summarize_text(input_text)  +"It's Privacy Score is:: "+ str(score)   
     # result.append(privacyscore)
 
     return redirect(url_for('newpolicy', summary1=summary1))
@@ -87,7 +91,7 @@ def newpolicy():
     summary1 = request.args.get('summary1')
     privacyscore=privacyScore(summary1)
     result=[]
-    result.append((summary1,privacyscore))
+    result.append((summary1,score))
     # print(type(summary1))
     return render_template('newpolicy.html', result=result)
 
@@ -149,7 +153,7 @@ def AvgPriOBikeIneveryCities():
 def Dangerous():
     print("hhhh")
     cur=mysql.connection.cursor()
-    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score<5")
+    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score>4")
     if resultVAlue>0:
         userDetails=cur.fetchall()
         return render_template('dangerous.html', userDetails=userDetails)
@@ -157,7 +161,7 @@ def Dangerous():
 @app.route('/safe')
 def safe():
     cur=mysql.connection.cursor()
-    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score>7")
+    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score<4")
     if resultVAlue>0:
         userDetails=cur.fetchall()
         return render_template('safe.html', userDetails=userDetails)
