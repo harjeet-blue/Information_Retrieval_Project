@@ -75,14 +75,25 @@ def summary(policy):
     return "this is very good policy"
 @app.route('/process_input', methods=['POST'])
 def process_input():
-    
-    input_text = request.form['input_text']
+    App_Name = request.form['input_text1']
+    Privacy_policy = request.form['input_text2']
+    type_id = int(request.form['input_text3'])
     global score
-    score=idxx.update(input_text)*100
-
+    Score=idxx.update(Privacy_policy)*100
+    cursor = mysql.connection.cursor()
+    cursor.execute("select count(*) from apps_table")
+    result = cursor.fetchall()
+    App_id=result[0][0]+1
     # Process the input here
-
-    summary1=summarize_text(input_text)  +"It's Privacy Score is:: "+ str(score)   
+    summary1=summarize_text(input_text) 
+    Rating=0
+    Paid=0
+    sql = "INSERT INTO apps_table (App_id, type_id, App_Name, Privacy_policy, Summary, Score, Rating, Paid) VALUES (%s,%s, %s,%s,%s, %s,%s,%s)"
+    val = (App_id, type_id, App_Name, Privacy_policy, summary1, Score, Rating, Paid)
+    cursor.execute(sql, val)
+    mysql.connection.commit()
+    cursor.close()
+    summary1 +="It's Privacy Score is:: "+ str(score) 
     # result.append(privacyscore)
 
     return redirect(url_for('newpolicy', summary1=summary1))

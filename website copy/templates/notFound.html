@@ -52,13 +52,32 @@
 		}
 	</style>
 </head>
+
+
+
 <body>
-	 <p>App is not in our database. Submit privacy policy to get Summary, Score, and Rating</p>
-	<form method="POST" action="{{ url_for('process_input') }}">
-		<label for="input_text">Enter policy which you want to be summarized::</label>
-		<input type="text" id="input_text" name="input_text"><br><br>
+
+	<p>App is not in our database. Submit privacy policy to get Summary, Score, and Rating</p>
+	<form method="POST" action="/process_input">
+		<label for="input_text1">App Name:</label>
+		<input type="text" id="input_text1" name="input_text1"><br>
+		<label for="input_text2">Enter policy which you want to be summarized: </label>
+		<input type="text" id="input_text2" name="input_text2"><br>
+		<label for="input_text3">Type_Id:</label>
+		<select id="input_text3" name="input_text3">
+			<option value="1">1: Texting</option>
+			<option value="2">2: Navigation</option>
+			<option value="3">3: Communication</option>
+			<option value="4">4: Music</option>
+			<option value="5">5: Media</option>
+			<option value="6">6: Cloud based storage</option>
+			<option value="7">7: Online shopping</option>
+			<option value="8">8: Health</option>
+			<option value="9">9: Taxi/Cab</option>
+			<option value="10">10: Social/Lifestyle</option>
+			<option value="11">11: Banking/Online payments</option>
+		  </select><br><br>
 		<input type="submit" value="Submit">
 	</form>
 </body>
 </html>
-
