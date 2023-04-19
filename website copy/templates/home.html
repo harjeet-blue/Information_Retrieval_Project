@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chatbot</title>
+</head>
+<body>
+	<h1>Chatbot</h1>
+	<div id="chatbox">
+		<p class="bot-message">Hello, I'm a chatbot. How can I help you?</p>
+	</div>
+	<input type="text" id="user-input">
+	<button onclick="sendMessage()">Send</button>
+	<script>
+		function sendMessage() {
+			var userInput = document.getElementById("user-input").value;
+			var chatbox = document.getElementById("chatbox");
+			var userMessage = "<p class='user-message'>" + userInput + "</p>";
+			chatbox.innerHTML += userMessage;
+			var xhr = new XMLHttpRequest();
+			xhr.open("GET", "/get?msg=" + userInput, true);
+			xhr.onload = function() {
+				var botMessage = "<p class='bot-message'>" + xhr.responseText + "</p>";
+				chatbox.innerHTML += botMessage;
+			}
+			xhr.send();
+			document.getElementById("user-input").value = "";
+		}
+	</script>
+	<style>
+		.user-message {
+			background-color: #ccc;
+			padding: 10px;
+			border-radius: 10px;
+			display: inline-block;
+			max-width: 70%;
+			margin-right: 10px;
+			margin-bottom: 10px;
+			word-wrap: break-word;
+		}
+		.bot-message {
+			background-color: #0d6efd;
+			color: #fff;
+			padding: 10px;
+			border-radius: 10px;
+			display: inline-block;
+			max-width: 70%;
+			margin-right: 10px;
+			margin-bottom: 10px;
+			word-wrap: break-word;
+		}
+		#chatbox {
+			margin-bottom: 20px;
+		}
+	</style>
+</body>
+</html>

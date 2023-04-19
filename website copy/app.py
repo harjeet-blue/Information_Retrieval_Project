@@ -5,6 +5,9 @@ import mysql.connector
 import indexing as idxx
 import torch 
 from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
+
+
+import chatBot as chatBot
 # import indexing as idxx
 input_text=""
 score=0
@@ -76,7 +79,7 @@ def summary(policy):
 @app.route('/process_input', methods=['POST'])
 def process_input():
     App_Name = request.form['input_text1']
-    Privacy_policy = request.form['input_text2']
+    Privacy_policy = chatBot.generate_ans_chatbot("write privacy policy of "+ App_Name)
     type_id = int(request.form['input_text3'])
     global score
     Score=idxx.update(Privacy_policy)*100
@@ -111,6 +114,19 @@ def newpolicy():
 def input():
     return render_template('NotFound.html')
 
+@app.route('/recomendationInput', methods=['POST'])
+def recomendationInput():
+    App_Name = request.form['input_text1']
+    #  recomendApp=funcc(App_Name)
+    return render_template('recScreen.html', input=App_Name)
+
+
+
+
+@app.route('/recomendation')
+def recomendation():
+    return render_template('recomendation.html')
+    
 @app.route('/result')
 def result():
     result1 = request.args.get('result')
@@ -177,6 +193,15 @@ def safe():
         userDetails=cur.fetchall()
         return render_template('safe.html', userDetails=userDetails)
 
+@app.route("/bottt")
+def home():
+    return render_template("home.html")
+
+@app.route("/get")
+def get_bot_response():
+    user_text = request.args.get("msg")
+    response = chatBot.generate_ans_chatbot(user_text)
+    return str(response)
 if __name__=='__main__':
     app.run(debug=True)
     
