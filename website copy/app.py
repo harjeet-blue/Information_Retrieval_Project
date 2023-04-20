@@ -4,7 +4,9 @@ from flask_mysqldb import MySQL
 import mysql.connector
 import indexing as idxx
 import torch 
+import summary as smr
 from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
+import Ir_recommendation as rec
 
 
 import chatBot as chatBot
@@ -81,25 +83,38 @@ def process_input():
     App_Name = request.form['input_text1']
     Privacy_policy = chatBot.generate_ans_chatbot("write privacy policy of "+ App_Name)
     type_id = int(request.form['input_text3'])
-    global score
-    Score=idxx.update(Privacy_policy)*100
+    
     cursor = mysql.connection.cursor()
     cursor.execute("select count(*) from apps_table")
     result = cursor.fetchall()
     App_id=result[0][0]+1
     # Process the input here
-    summary1=summarize_text(input_text) 
+   
+    summary1= summarize_text(Privacy_policy) 
     Rating=0
     Paid=0
+    
+
     sql = "INSERT INTO apps_table (App_id, type_id, App_Name, Privacy_policy, Summary, Score, Rating, Paid) VALUES (%s,%s, %s,%s,%s, %s,%s,%s)"
-    val = (App_id, type_id, App_Name, Privacy_policy, summary1, Score, Rating, Paid)
+    val = (App_id, type_id, App_Name, Privacy_policy, summary1, 0, Rating, Paid)
+   
+    
     cursor.execute(sql, val)
     mysql.connection.commit()
-    cursor.close()
-    summary1 +="It's Privacy Score is:: "+ str(score) 
+    global score
+    idxx.calculate_score()
+    
+    str2="SELECT score FROM apps_table WHERE app_name = ";
+    str3=str2+"\'"+App_Name+"\';"
+    val=(App_Name)
+    cursor.execute(str3)
+    result = cursor.fetchall()[0][0]
+    res=[(App_Name,summary1,result)]
+    
+    # summary1 +="It's Privacy Score is:: "+ str(result) 
     # result.append(privacyscore)
-
-    return redirect(url_for('newpolicy', summary1=summary1))
+    print("score",result)
+    return render_template('newpolicy.html', result=res)
 @app.route('/newpolicy')
 def newpolicy():
     summary1 = request.args.get('summary1')
@@ -117,8 +132,9 @@ def input():
 @app.route('/recomendationInput', methods=['POST'])
 def recomendationInput():
     App_Name = request.form['input_text1']
-    #  recomendApp=funcc(App_Name)
-    return render_template('recScreen.html', input=App_Name)
+    recomendApp=rec.get_recommendations(App_Name)
+    print(recomendApp)
+    return render_template('recScreen.html', input=recomendApp)
 
 
 
@@ -174,8 +190,7 @@ def AvgPriOBikeIneveryCities():
     if resultVAlue>0:
         userDetails=cur.fetchall()
         return render_template('privacyscore.html', userDetails=userDetails)
-
-
+    
 @app.route('/Dangerous')
 def Dangerous():
     print("hhhh")

@@ -161,10 +161,6 @@ def positional_query(query, posDict):
         if( len(temp) != 0 ):
             ans.append(file)
     
-
-    print("\nQuery Using POSITIONAL INVERTED INDEX: ")
-    print("No of documents retrived: ", len(ans))
-    
     return ans
 
 

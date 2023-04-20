@@ -6,12 +6,18 @@ from nltk.corpus import stopwords
 import pandas as pd
 from nltk.stem import WordNetLemmatizer
 import math 
-import pickle
 import numpy as np
 nltk.download('punkt')
 # nltk.download('wordnet')
 import query as pt
+import mysql.connector
 
+mydb = mysql.connector.connect(
+        host = "localhost",
+        username = "root",
+        passwd = "7061",
+        database = "ir_policy_db"
+        )
 AppID = {}           # AppName: ID
 posDict = {}         #  'thrid party' : {  "Whatsapp": [3,4 ,5], }
 total_words = {}     # AppID : total Words
@@ -40,11 +46,6 @@ def Preprocessing( data ):
     return final_str
 
 
-# posDict = pickle.load( open('postionalIndex', 'rb'))
-# AppID = pickle.load( open('appID', 'rb'))
-# total_words = pickle.load ( open('totalWords', 'rb'))
-
-
 def score(l,n):
     # l = [['a':occurence, 'b': occurence],[],[]...]---> a,b are apps, first list is list of occurences of a SPECIAL WORD in apps.
     score_list = np.zeros(n)
@@ -68,41 +69,33 @@ def score(l,n):
     for j in range(n):
         score_list[j] = sum(list(map(lambda x, y: x * y, weights[j], iml[j])))
 
-    final_score = {}
-    for app in total_words.keys():
-        final_score[app] = np.sum(score_list)/total_words[app]
+    score_list = (score_list/max(score_list))*10
 
-    return final_score      # sorted by AppID
+    return score_list      # sorted by AppID
 
 
-def score_calculation():
+def helper_function():
     query = ['data sharing', 'third party', 'advertisement']
     ans = []
     for word in query:
         temp = pt.query_processing(posDict, word, AppID)
         ans.append(temp)
 
-    return score(ans, len(ans))
+    return score(ans, len(ans[0]))
 
 
-def update(text):
+def calculate_score():
 
-    df = pd.read_csv("Apps.csv")
-    df.loc[len(df.index)] = [ len(df) + 1, 5, 'input', text, 'na', 0, 0, 0] 
-
-    # new_row = pd.DataFrame( { 'App ID': len(df) + 1 , 'Type ID' : 5, 'App Name' : 'input', 'Privacy Policy' : text, 'Summary' : '', 'Score': 0, 'Rating' : 0, 'Paid': 0})
-    df['App Name'] = df['App Name'].astype(str)
-    df['Privacy Policy'] = df['Privacy Policy'].astype(str)
-    df['App ID'] = df['App ID'].astype(int)
-    df['clean policy'] = df['Privacy Policy'].apply(Preprocessing)
+    df = pd.read_sql("select * from apps_table", con = mydb)
+    df['clean_policy'] = df['Privacy_policy'].apply(Preprocessing)
 
     for i in range(len(df)):
 
-        AppID[df['App Name'][i]] = df['App ID'][i]
+        AppID[df['App_Name'][i]] = df['App_Id'][i]
 
-        data = df['clean policy'][i]
+        data = df['clean_policy'][i]
         single_tokens = data.split()
-        app = df['App Name'][i]
+        app = df['App_Name'][i]
         total_words[app] = len(single_tokens)
 
         # ************************ CODE TO CREATE POSITIONAL INVERTED LISTS *********************************
@@ -121,20 +114,22 @@ def update(text):
                 else:
                     posDict[word][app] = [itr]
 
-    
-    # pickle.dump( posDict , open('postionalIndex', 'wb'))
-    # pickle.dump( AppID, open('appID', 'wb'))
-    # pickle.dump( total_words, open('totalWords', 'wb'))
-
-    temp = score_calculation()
+    temp = helper_function()
+    print("df lenght::", len(df))
 
     for i in range(len(df)):
-        df.loc[i, 'Score'] = temp[ str(df['App Name'][i]) ]
+        df.loc[i, 'Score'] = temp[ i ]
 
-    df.to_excel('Apps.xlsx', index= False)
-    return temp['input']
+    df.drop('clean_policy', axis= 1)
+    mycur = mydb.cursor()
+    for i in range(1, len(df) + 1):
+        sql = "UPDATE apps_table SET score =%s WHERE app_id = %s"
+        if(math.isnan(temp[i-1])):
+            temp[i-1]=0
+        val = ( temp[i-1], i)
+        mycur.execute(sql, val)
+    mydb.commit()
 
-
-# print(update("thrid party"))
-
-# print(score_calculation())
+    mydb.close()
+    # overwrite MySQL table with updated DataFrame
+    # df.to_sql('apps_table', mydb, if_exists='replace',index=False)

@@ -2,6 +2,8 @@
 
 <html>
 <head>
+  <body style="background-color:  #66ffff ;">
+
     <meta charset="UTF-8">
     <title>Search Results</title>
     <style>
@@ -29,8 +31,9 @@
   <table id="data" class="table table-striped">
     <thead>
       <tr>
+        <th scope="col">App Name </th>
         <th scope="col">Summary </th>
-        <th scope="col">Privacy Score</th>
+        <th scope="col">Threat Score</th>
         
       </tr>
     </thead>
@@ -39,6 +42,8 @@
         <tr>
             <td>{{user[0]}} </td>
             <td>{{user[1]}} </td>
+            
+            <td>{{user[2]}} </td>
             
         </tr>
       {% endfor %}
