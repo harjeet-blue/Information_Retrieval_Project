@@ -123,9 +123,16 @@ policy = df["Privacy Policy"]
 # prepro = preprocess(policy)
 # keywords = get_keywords(prepro, policy)
 keywords = joblib.load("keywords_for_each_app_IR_Project")
+print(len(keywords))
+summary_list = []
 count = 0
 for p in policy:
-    print(summarize_text(p, keywords[count]))
+    if(count == 39):
+       summary_list.append("NA")
+       continue
+    summary_list.append(summarize_text(p, keywords[count]))
+    print(summary_list[count])
     print()
     count +=1
+joblib.dump(summary_list, "summary_list")
 
