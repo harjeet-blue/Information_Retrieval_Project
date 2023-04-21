@@ -27,7 +27,7 @@ CREATE TABLE `app_features` (
   `featureID` int NOT NULL,
   PRIMARY KEY (`appID`,`featureID`),
   KEY `fid_fk_idx` (`featureID`),
-  CONSTRAINT `aid_fk` FOREIGN KEY (`appID`) REFERENCES `Apps_table` (`App_Id`),
+  CONSTRAINT `aid_fk` FOREIGN KEY (`appID`) REFERENCES `apps_table` (`App_Id`),
   CONSTRAINT `fid_fk` FOREIGN KEY (`featureID`) REFERENCES `feature` (`featureID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -51,4 +51,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-04-19 20:48:20
+-- Dump completed on 2023-04-21 14:50:47
