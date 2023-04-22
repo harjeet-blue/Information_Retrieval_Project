@@ -16,13 +16,13 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `Permission`
+-- Table structure for table `permission`
 --
 
-DROP TABLE IF EXISTS `Permission`;
+DROP TABLE IF EXISTS `permission`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `Permission` (
+CREATE TABLE `permission` (
   `PermissionID` int NOT NULL,
   `Name` varchar(45) NOT NULL,
   `Description` varchar(1000) NOT NULL,
@@ -31,13 +31,13 @@ CREATE TABLE `Permission` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `Permission`
+-- Dumping data for table `permission`
 --
 
-LOCK TABLES `Permission` WRITE;
-/*!40000 ALTER TABLE `Permission` DISABLE KEYS */;
-INSERT INTO `Permission` VALUES (1,'Camera','taking photos, recording footage, and streaming video.'),(2,'Microphone','used for recording audio and video.'),(3,'Contacts','read, create, or edit your contact list, as well as access the list of all accounts used on your device.'),(4,'Files and Media','access to your files, media, photos, and basically anything else stored on your phone’s memory.'),(5,'Location','access your location using GPS for high accuracy, cellular data and Wi-Fi for approximate accuracy.'),(6,'Calender','allows apps to read, create, edit, or delete your calendar events.'),(7,'Body sensors','allows access to your health data and step count from paired heart-rate monitors, fitness trackers, and other sensors.'),(8,'Nearby Devices','whether an app can find, connect to, and determine the position of other nearby devices.'),(9,'Phone','access your phone number and network info. Required for making calls and VoIP, voicemail, call redirect, and editing call logs.'),(10,'SMS','read, receive, and send MMS and SMS messages.'),(11,'Physical activity','access your physical activity logs, such as step count and exercise info.'),(12,'Call Logs','NA');
-/*!40000 ALTER TABLE `Permission` ENABLE KEYS */;
+LOCK TABLES `permission` WRITE;
+/*!40000 ALTER TABLE `permission` DISABLE KEYS */;
+INSERT INTO `permission` VALUES (1,'Camera','taking photos, recording footage, and streaming video.'),(2,'Microphone','used for recording audio and video.'),(3,'Contacts','read, create, or edit your contact list, as well as access the list of all accounts used on your device.'),(4,'Files and Media','access to your files, media, photos, and basically anything else stored on your phone’s memory.'),(5,'Location','access your location using GPS for high accuracy, cellular data and Wi-Fi for approximate accuracy.'),(6,'Calender','allows apps to read, create, edit, or delete your calendar events.'),(7,'Body sensors','allows access to your health data and step count from paired heart-rate monitors, fitness trackers, and other sensors.'),(8,'Nearby Devices','whether an app can find, connect to, and determine the position of other nearby devices.'),(9,'Phone','access your phone number and network info. Required for making calls and VoIP, voicemail, call redirect, and editing call logs.'),(10,'SMS','read, receive, and send MMS and SMS messages.'),(11,'Physical activity','access your physical activity logs, such as step count and exercise info.'),(12,'Call Logs','NA');
+/*!40000 ALTER TABLE `permission` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +49,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-04-19 20:48:20
+-- Dump completed on 2023-04-21 14:50:46
