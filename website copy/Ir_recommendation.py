@@ -35,13 +35,13 @@ def get_recommendations(app_name):
       else:
         fapp[appID[row]].append(perms[row])
   
-  key_feat=np.zeros(len(df2)*len(df2)).reshape(len(df2),len(df2))
+  
   appID=list(fapp.keys())
   perms=[]
   for k in fapp.keys():
     perms.append(fapp[k])
   app = df['App_Name']
-  
+  key_feat=np.zeros(len(perms)*len(perms)).reshape(len(perms),len(perms))
   for i in range(len(perms)-2):
     for j in range(i+1,len(perms)-1):
       dist_features = jac_sim(perms[i], perms[j])
@@ -49,20 +49,28 @@ def get_recommendations(app_name):
   print(key_feat, "PRINTING KEY FEAT")
   for i in range(len(key_feat)):
     f1=False
-    print(df['App_Name'][i])
-    if(df['App_Name'][i].lower()==app_name.lower()):
-      print("app name", app_name)
+    # print(df['App_Name'][i])
+    if(df['App_Name'][i]==app_name):
+      # print("app name", app_name)
       f1=False
       sorted = np.argsort(key_feat[i])[::-1]
+      # print(len(key_feat[i]), "LEN OF KEY_FEAT[i]")
+      # print(sorted)
       top_5 = sorted[:5]
-      print("For",app_name, " better apps recommended: ")
+      # print(sorted, top_5,"top_5")
+      # print("For",app_name, " better apps recommended: ")
       for j in top_5:
-        if(df['Score'][df['App_Id']==appID[j]].item() <df['Score'][df['App_Id']==appID[i]].item() ):
+        # print(appID[j])
+        # print(df['Score'][df['App_Id']==appID[j]].item())
+        # print(df['App_Name'][j])
+        # print(app_name, df['Score'][df['App_Name']==df['App_Name'][i]], (app_name==df['App_Name'][i]))
+        if(df['Score'][df['App_Id']==appID[j]].item() <df['Score'][df['App_Name']==app_name ].item()):
           f1=True
+        # print(app[j])
           recommended+=app[j]+" "
-
+      print(recommended)
       if(len(recommended)==0):
         print("No better app to recommend")
         return 'No better app to recommend'
     print(recommended)
-    return "For",app_name,recommended
+  return "For",app_name,recommended
