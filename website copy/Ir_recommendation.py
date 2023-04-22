@@ -68,9 +68,9 @@ def get_recommendations(app_name):
           f1=True
         # print(app[j])
           recommended+=app[j]+" "
-      print(recommended)
+      # print(recommended)
       if(len(recommended)==0):
         print("No better app to recommend")
         return 'No better app to recommend'
-    print(recommended)
+    # print(recommended)
   return "For",app_name,recommended

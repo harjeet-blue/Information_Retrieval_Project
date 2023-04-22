@@ -4,6 +4,8 @@ from flask_mysqldb import MySQL
 import mysql.connector
 import indexing as idxx
 import torch 
+from flask_caching import Cache
+
 import summary as smr
 from transformers import T5Tokenizer, T5ForConditionalGeneration, T5Config
 import Ir_recommendation as rec
@@ -16,23 +18,22 @@ score=0
 model = T5ForConditionalGeneration.from_pretrained('t5-small')
 tokenizer = T5Tokenizer.from_pretrained('t5-small')
 device = torch.device('cpu')
-conn = mysql.connector.connect(host='localhost', password='7061', user='root', database = 'ir_policy_db')
-# import yaml
-
 app = Flask(__name__)
+cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
-# db=yaml.load(open('db.yaml'))
-# app.config['MYSQL_HOST']=db['mysql_host']
-# app.config['MYSQL_USER']=db['mysql_user']
-# app.config['MYSQL_PASSWORD']=db['mysql_password']
-# app.config['MYSQL_DB']=`db['mysql_db']
 app.config['MYSQL_HOST']='localhost'
 app.config['MYSQL_USER']='root'
 app.config['MYSQL_PASSWORD']='7061'
 app.config['MYSQL_DB']='ir_policy_db'
 
-mysql=MySQL(app)
-
+def get_db_connection():
+    conn = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )
+    return conn
 def summarize_text(text):
     
   preprocess_text = text.strip().replace("\n","")
@@ -54,74 +55,52 @@ def summarize_text(text):
 @app.route("/", methods=['GET', 'POST'])
 def template():
     if request.method=='POST':
-        # print("heu")
         userDetails=request.form
-        # cur=mysql.connection.cursor()
-        # cur.execute("select count(*) from user_details")
-        # result = cur.fetchall()
-        # userid=result[0][0]+2
         result1=userDetails["App_Name"]
-        print(result1)
     # Pass the result to the next page
         return redirect(url_for('result', result=result1))
-        # mycursor.execute(str3)
-        # resultVAlue=mycursor.fetchall()
-        # print(resultVAlue )
-        # mysql.connection.commit()
-        # 
-        # return redirect('/homepage')
-        # Homepage(str3)
+
     return render_template('index.html')
 
-def privacyScore(summary):
-    return 0
-def summary(policy):
-
-    return "this is very good policy"
 @app.route('/process_input', methods=['POST'])
 def process_input():
     App_Name = request.form['input_text1']
     Privacy_policy = chatBot.generate_ans_chatbot("write privacy policy of "+ App_Name)
     type_id = int(request.form['input_text3'])
+    with mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )as conn:
+        cursor = conn.cursor()
+        cursor.execute("select count(*) from apps_table")
+        result = cursor.fetchall()
+        App_id=result[0][0]+1
+        
+        summary1= summarize_text(Privacy_policy) 
+        Rating=4
+        Paid=0
+        sql = "INSERT INTO apps_table (App_id, type_id, App_Name, Privacy_policy, Summary, Score, Rating, Paid) VALUES (%s,%s, %s,%s,%s, %s,%s,%s)"
+        val = (App_id, type_id, App_Name, Privacy_policy, summary1, 0, Rating, Paid)
     
-    cursor = mysql.connection.cursor()
-    cursor.execute("select count(*) from apps_table")
-    result = cursor.fetchall()
-    App_id=result[0][0]+1
-    # Process the input here
-   
-    summary1= summarize_text(Privacy_policy) 
-    Rating=0
-    Paid=0
-    
-
-    sql = "INSERT INTO apps_table (App_id, type_id, App_Name, Privacy_policy, Summary, Score, Rating, Paid) VALUES (%s,%s, %s,%s,%s, %s,%s,%s)"
-    val = (App_id, type_id, App_Name, Privacy_policy, summary1, 0, Rating, Paid)
-   
-    
-    cursor.execute(sql, val)
-    mysql.connection.commit()
-    global score
-    idxx.calculate_score()
-    
-    str2="SELECT score FROM apps_table WHERE app_name = ";
-    str3=str2+"\'"+App_Name+"\';"
-    val=(App_Name)
-    cursor.execute(str3)
-    result = cursor.fetchall()[0][0]
+        
+        cursor.execute(sql, val)
+        conn.commit()   
+        idxx.calculate_score()
+        str2="SELECT score FROM apps_table WHERE app_name = ";
+        str3=str2+"\'"+App_Name+"\';"
+        val=(App_Name)
+        cursor.execute(str3)
+        result = cursor.fetchall()[0][0]
+        cursor.close()
     res=[(App_Name,summary1,result)]
-    
-    # summary1 +="It's Privacy Score is:: "+ str(result) 
-    # result.append(privacyscore)
-    print("score",result)
     return render_template('newpolicy.html', result=res)
 @app.route('/newpolicy')
 def newpolicy():
     summary1 = request.args.get('summary1')
-    privacyscore=privacyScore(summary1)
     result=[]
     result.append((summary1,score))
-    # print(type(summary1))
     return render_template('newpolicy.html', result=result)
 
 
@@ -133,7 +112,6 @@ def input():
 def recomendationInput():
     App_Name = request.form['input_text1']
     recomendApp=rec.get_recommendations(App_Name)
-    print(recomendApp)
     return render_template('recScreen.html', input=recomendApp)
 
 
@@ -146,17 +124,25 @@ def recomendation():
 @app.route('/result')
 def result():
     result1 = request.args.get('result')
-    print(len(result1))
-    mycursor = conn.cursor()
-    str2="select ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Summary, ir_policy_db.Apps_table.Score, ir_policy_db.Apps_table.Rating from ir_policy_db.Apps_table where ir_policy_db.Apps_table.App_Name = "
-    str3=str2+"\'"+result1+"\';"
-        # val=(app_name)
-    mycursor.execute(str3)
-    result = mycursor.fetchall()
-    print(len(result))
+    print("app name: ",result1)
+    conn =get_db_connection()
+    with mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )as conn:
+        mycursor = conn.cursor()
+        str2="select ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Summary, ir_policy_db.Apps_table.Score, ir_policy_db.Apps_table.Rating from ir_policy_db.Apps_table where ir_policy_db.Apps_table.App_Name = "
+        str3=str2+"\'"+result1+"\';"
+            # val=(app_name)
+        mycursor.execute(str3)
+        result = mycursor.fetchall()
+        mycursor.close()
+        print("app is:", result);
     if(len(result)==0):
        return redirect(url_for('input'))
-    mycursor.close()
+    
     return render_template('result.html', result=result)
 
 
@@ -166,10 +152,7 @@ def result():
 @app.route('/homepage')
 
 def Homepage():
-    # cur=mysql.connection.cursor()
-    # resultVAlue=cur.execute("select DISTINCT(seller_id) from (select seller_id from product_table) AS temp1 where seller_id NOT IN(SELECT seller_id FROM (select* from(select DISTINCT(seller_id)from product_table) AS temp2 cross join (select type_id from type_table) AS temp3)AS temp4 WHERE (seller_id,type_id) NOT IN( select seller_id,type_id from product_table));")
-    # if resultVAlue>0:
-    #     userDetails=cur.fetchall()
+   
     return render_template('homepage.html')
 
 
@@ -177,35 +160,46 @@ def Homepage():
 
 @app.route('/AskPandSellPdiff1000')   
 def AskPandSellPdiff1000():
-    cur=mysql.connection.cursor()
+    conn = get_db_connection()
+
+    cur=conn.cursor()
     resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Rating from ir_policy_db.Apps_table")
     if resultVAlue>0:
         userDetails=cur.fetchall()
+        conn.close()
         return render_template('rating.html', userDetails=userDetails)
 
 @app.route('/AvgPriOBikeIneveryCities')
 def AvgPriOBikeIneveryCities():
-    cur=mysql.connection.cursor()
+    conn = get_db_connection()
+    cur=conn.cursor()
     resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table")
     if resultVAlue>0:
         userDetails=cur.fetchall()
+        conn.close()
         return render_template('privacyscore.html', userDetails=userDetails)
     
 @app.route('/Dangerous')
 def Dangerous():
-    print("hhhh")
-    cur=mysql.connection.cursor()
+    conn = get_db_connection()
+
+    cur=conn.cursor()
     resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score>4")
     if resultVAlue>0:
         userDetails=cur.fetchall()
+        conn.close()
         return render_template('dangerous.html', userDetails=userDetails)
+    
 
 @app.route('/safe')
 def safe():
-    cur=mysql.connection.cursor()
+    conn = get_db_connection()
+
+    cur=conn.cursor()
     resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score<4")
     if resultVAlue>0:
         userDetails=cur.fetchall()
+        conn.close()
         return render_template('safe.html', userDetails=userDetails)
 
 @app.route("/bottt")
