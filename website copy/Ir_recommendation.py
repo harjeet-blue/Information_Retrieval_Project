@@ -10,7 +10,6 @@ mydb = mysql.connector.connect(
         )
 
 def jac_sim(text1,text2):
-#   print(type(text1), type(text2))
   set1 = set(text1)
   set2 = set(text2)
   intersection = set1.intersection(set2)
@@ -25,6 +24,7 @@ df = pd.read_sql("select * from apps_table", con = mydb)
 df2 = pd.read_sql("select * from app_features", con = mydb)
 
 def get_recommendations(app_name):
+  app_name=app_name.capitalize()
   perms = df2['featureID']
   appID = df2['appID']
   fapp = {}
@@ -49,21 +49,12 @@ def get_recommendations(app_name):
   print(key_feat, "PRINTING KEY FEAT")
   for i in range(len(key_feat)):
     f1=False
-    # print(df['App_Name'][i])
     if(df['App_Name'][i]==app_name):
-      # print("app name", app_name)
       f1=False
       sorted = np.argsort(key_feat[i])[::-1]
-      # print(len(key_feat[i]), "LEN OF KEY_FEAT[i]")
-      # print(sorted)
       top_5 = sorted[:5]
-      # print(sorted, top_5,"top_5")
-      # print("For",app_name, " better apps recommended: ")
       for j in top_5:
-        # print(appID[j])
-        # print(df['Score'][df['App_Id']==appID[j]].item())
-        # print(df['App_Name'][j])
-        # print(app_name, df['Score'][df['App_Name']==df['App_Name'][i]], (app_name==df['App_Name'][i]))
+       
         if(df['Score'][df['App_Id']==appID[j]].item() <df['Score'][df['App_Name']==app_name ].item()):
           f1=True
         # print(app[j])
@@ -72,5 +63,4 @@ def get_recommendations(app_name):
       if(len(recommended)==0):
         print("No better app to recommend")
         return 'No better app to recommend'
-    # print(recommended)
   return "For",app_name,recommended

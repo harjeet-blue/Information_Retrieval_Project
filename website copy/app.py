@@ -155,26 +155,31 @@ def Homepage():
    
     return render_template('homepage.html')
 
-
-
-
 @app.route('/AskPandSellPdiff1000')   
 def AskPandSellPdiff1000():
-    conn = get_db_connection()
+    with mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )as conn:
 
-    cur=conn.cursor()
-    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Rating from ir_policy_db.Apps_table")
-    if resultVAlue>0:
+        cur=conn.cursor()
+        resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Rating from ir_policy_db.Apps_table")
         userDetails=cur.fetchall()
         conn.close()
         return render_template('rating.html', userDetails=userDetails)
 
 @app.route('/AvgPriOBikeIneveryCities')
 def AvgPriOBikeIneveryCities():
-    conn = get_db_connection()
-    cur=conn.cursor()
-    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table")
-    if resultVAlue>0:
+    with mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )as conn:
+        cur=conn.cursor()
+        resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table")
         userDetails=cur.fetchall()
         conn.close()
         return render_template('privacyscore.html', userDetails=userDetails)
@@ -182,22 +187,29 @@ def AvgPriOBikeIneveryCities():
 @app.route('/Dangerous')
 def Dangerous():
     conn = get_db_connection()
-
-    cur=conn.cursor()
-    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score>4")
-    if resultVAlue>0:
+    with mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )as conn:
+        cur=conn.cursor()
+        resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score>4")
         userDetails=cur.fetchall()
         conn.close()
         return render_template('dangerous.html', userDetails=userDetails)
-    
+        
 
 @app.route('/safe')
 def safe():
-    conn = get_db_connection()
-
-    cur=conn.cursor()
-    resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score<4")
-    if resultVAlue>0:
+    with mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )as conn:
+        cur=conn.cursor()
+        resultVAlue=cur.execute("select ir_policy_db.Apps_table.App_Id, ir_policy_db.Apps_table.App_Name, ir_policy_db.Apps_table.Score from ir_policy_db.Apps_table where ir_policy_db.Apps_table.Score<4")
         userDetails=cur.fetchall()
         conn.close()
         return render_template('safe.html', userDetails=userDetails)

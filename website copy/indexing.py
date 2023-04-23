@@ -12,12 +12,12 @@ nltk.download('punkt')
 import query as pt
 import mysql.connector
 
-mydb = mysql.connector.connect(
-        host = "localhost",
-        username = "root",
-        passwd = "7061",
-        database = "ir_policy_db"
-        )
+# mydb = mysql.connector.connect(
+#         host = "localhost",
+#         username = "root",
+#         passwd = "7061",
+#         database = "ir_policy_db"
+#         )
 AppID = {}           # AppName: ID
 posDict = {}         #  'thrid party' : {  "Whatsapp": [3,4 ,5], }
 total_words = {}     # AppID : total Words
@@ -85,51 +85,55 @@ def helper_function():
 
 
 def calculate_score():
+    with mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='7061',
+        database='ir_policy_db'
+    )as mydb:
+        df = pd.read_sql("select * from apps_table", con = mydb)
+        df['clean_policy'] = df['Privacy_policy'].apply(Preprocessing)
 
-    df = pd.read_sql("select * from apps_table", con = mydb)
-    df['clean_policy'] = df['Privacy_policy'].apply(Preprocessing)
+        for i in range(len(df)):
 
-    for i in range(len(df)):
+            AppID[df['App_Name'][i]] = df['App_Id'][i]
 
-        AppID[df['App_Name'][i]] = df['App_Id'][i]
+            data = df['clean_policy'][i]
+            single_tokens = data.split()
+            app = df['App_Name'][i]
+            total_words[app] = len(single_tokens)
 
-        data = df['clean_policy'][i]
-        single_tokens = data.split()
-        app = df['App_Name'][i]
-        total_words[app] = len(single_tokens)
+            # ************************ CODE TO CREATE POSITIONAL INVERTED LISTS *********************************
 
-        # ************************ CODE TO CREATE POSITIONAL INVERTED LISTS *********************************
+            for itr in range(0, len(single_tokens)):
+                word = single_tokens[itr]
 
-        for itr in range(0, len(single_tokens)):
-            word = single_tokens[itr]
-
-            if word not in posDict:                 # add only if that index is not present in the posDict
-                
-                posDict[word] = {}
-                posDict[word][app] = [itr]
-
-            else:
-                if app in posDict[word]:
-                    posDict[word][app].append(itr)
-                else:
+                if word not in posDict:                 # add only if that index is not present in the posDict
+                    
+                    posDict[word] = {}
                     posDict[word][app] = [itr]
 
-    temp = helper_function()
-    print("df lenght::", len(df))
+                else:
+                    if app in posDict[word]:
+                        posDict[word][app].append(itr)
+                    else:
+                        posDict[word][app] = [itr]
 
-    for i in range(len(df)):
-        df.loc[i, 'Score'] = temp[ i ]
+        temp = helper_function()
+        print("df lenght::", len(df))
 
-    df.drop('clean_policy', axis= 1)
-    mycur = mydb.cursor()
-    for i in range(1, len(df) + 1):
-        sql = "UPDATE apps_table SET score =%s WHERE app_id = %s"
-        if(math.isnan(temp[i-1])):
-            temp[i-1]=0
-        val = ( temp[i-1], i)
-        mycur.execute(sql, val)
-    mydb.commit()
+        for i in range(len(df)):
+            df.loc[i, 'Score'] = temp[ i ]
 
-    mydb.close()
+        df.drop('clean_policy', axis= 1)
+        mycur = mydb.cursor()
+        for i in range(1, len(df) + 1):
+            sql = "UPDATE apps_table SET score =%s WHERE app_id = %s"
+            if(math.isnan(temp[i-1])):
+                temp[i-1]=0
+            val = ( temp[i-1], i)
+            mycur.execute(sql, val)
+        mydb.commit()
+
     # overwrite MySQL table with updated DataFrame
     # df.to_sql('apps_table', mydb, if_exists='replace',index=False)
